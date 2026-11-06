@@ -1,6 +1,13 @@
 name: Generate daily gold-rate Status image
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'generate.py'
+      - 'requirements.txt'
+      - 'assets/logo.png'
+      - '.github/workflows/daily-gold.yml'
   workflow_dispatch:
   schedule:
     - cron: '35 8 * * *'
