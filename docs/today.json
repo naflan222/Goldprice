@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-11-06T12:13:50.705930+05:30",
+  "source": "GoldPriceToday.lk",
+  "source_url": "https://www.goldpricetoday.lk/api/v1/gold-price",
+  "price_as_of": "2026-11-06T06:40:03+05:30",
+  "currency": "LKR",
+  "type": "indicative_market_reference_not_retail_quote",
+  "prices": {
+    "24k": {
+      "per_gram": 43272.55,
+      "per_8g": 346180.41
+    },
+    "22k": {
+      "per_gram": 39666.5,
+      "per_8g": 317332.04
+    }
+  }
+}

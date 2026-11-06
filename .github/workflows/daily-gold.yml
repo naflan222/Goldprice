@@ -1,0 +1,37 @@
+name: Generate daily gold-rate Status image
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 8 * * *'
+      timezone: 'Asia/Colombo'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - name: Generate real image (fail if rates are stale or invalid)
+        env:
+          SHOP_NAME: ELEGANCE
+          SHOP_SUBTITLE: GEM & JEWELLERS
+          SHOP_TAGLINE: Timeless Beauty, enduring Gold
+        run: python generate.py
+      - name: Publish latest image to this repository
+        run: |
+          git config user.name 'gold-rate-automation[bot]'
+          git config user.email 'gold-rate-automation@users.noreply.github.com'
+          git add docs/today.png docs/today.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update gold-rate image $(date -u +%F)"
+            git push
+          fi

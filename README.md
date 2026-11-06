@@ -48,26 +48,19 @@ python3 -m unittest discover -s tests -v
 
 ## Set up automated image creation on GitHub
 
-1. Create a repository on your GitHub account; for example `daily-gold-rates`.
-   Upload all project files *including* `.github/workflows/daily-gold.yml`.
+1. This project is uploaded to **naflan222/Goldprice** (public).
 2. The workflow already uses **Elegance Gem & Jewellers** branding and the
-   matching logo. Change `SHOP_NAME` only if the branding changes.
-3. Open the repo **Settings → Actions → General**. Allow actions and enable
-   workflow read/write permissions if required for the commit step.
-4. In **Actions**, run **Generate daily gold-rate Status image → Run workflow**.
-   Check that `docs/today.png` appears. A failure means a data or permission
-   issue; don't silently substitute another price.
-5. In **Settings → Pages**, set **Build and deployment → Deploy from a branch**;
-   select your default branch, folder **/docs**, and Save.
-6. Your latest image URL is normally:
+   matching transparent logo. Change `SHOP_NAME` only if branding changes.
+3. Open GitHub repository **Settings → Actions → General**. Allow actions and
+   enable workflow read/write permissions if required for the commit step.
+4. In the repository's **Actions** tab, run **Generate daily gold-rate Status
+   image → Run workflow** once. Check that `docs/today.png` is updated. A
+   failure means a data or permission issue; don't silently substitute a price.
+5. Use this stable public image URL on the iPhone (no GitHub Pages setup needed):
 
-   `https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPOSITORY/today.png`
+   `https://raw.githubusercontent.com/naflan222/Goldprice/main/docs/today.png`
 
-   For `naflan222/daily-gold-rates`, it would be
-   `https://naflan222.github.io/daily-gold-rates/today.png`
-   **only after you create and enable that repo and Pages**.
-
-7. The scheduled job runs at **8:35 AM Sri Lanka time**. GitHub's schedule may
+6. The scheduled job runs at **8:35 AM Sri Lanka time**. GitHub's schedule may
    occasionally be delayed; if the image hasn't updated, the old timestamp
    remains clearly visible. **Don't post an image if its rate date is too old**.
 
