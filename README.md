@@ -2,7 +2,10 @@
 
 Generates a premium Elegance Gem & Jewellers vertical (1080×1920) 22K / 24K gold-price picture using
 **Devi Jewellers, Colombo** reference prices, including per-gram and per-8-gram
-(pawn) values, a visible source date, and a clear disclaimer. It runs daily on GitHub Actions.
+(pawn) values, a visible rate date, the Elegance address and phone number, and a
+clear disclaimer. It runs daily on GitHub Actions. The downloadable image is
+Elegance-branded: third-party data-provider names remain in the accompanying
+metadata and documentation, not on the customer-facing poster.
 
 **What it does not do:** automatically post to WhatsApp Status. WhatsApp does
 not provide a supported Status-publishing API. Your friend will post from their
@@ -47,8 +50,10 @@ python3 generate.py --shop "ELEGANCE"
 This produces `docs/today.png` and `docs/today.json`. The source must be
 available to your computer. The supplied Elegance mark is at `assets/logo.png`.
 To change branding later, use the `--shop`, `--subtitle`, and `--tagline`
-arguments or set the corresponding `SHOP_NAME`, `SHOP_SUBTITLE`, and
-`SHOP_TAGLINE` environment variables. The text-only fallback works without a logo.
+`--address`, and `--phone` arguments, or set the corresponding `SHOP_NAME`,
+`SHOP_SUBTITLE`, `SHOP_TAGLINE`, `SHOP_ADDRESS`, and `SHOP_PHONE` environment
+variables. The default address is **No. 97, Main Street, Tangalle** and the
+default phone is **077 077 7998**. The text-only fallback works without a logo.
 
 To run the data validation tests:
 
@@ -106,4 +111,6 @@ or the official WhatsApp Business API.
 - Do not share your friend's WhatsApp password, SMS codes or linked-device QR.
 - They remain the account owner and approve any permissions themselves.
 - Do not install unofficial modified WhatsApp apps for unattended posting.
-- Keep your source metadata and source attribution on the image.
+- Keep the source attribution in `docs/today.json` and this README so the
+  actual provenance is traceable, even though third-party names do not appear
+  on the customer-facing image.

@@ -38,6 +38,8 @@ jobs:
           SHOP_NAME: ELEGANCE
           SHOP_SUBTITLE: GEM & JEWELLERS
           SHOP_TAGLINE: Timeless Beauty, enduring Gold
+          SHOP_ADDRESS: No. 97, Main Street, Tangalle
+          SHOP_PHONE: 077 077 7998
         run: python generate.py
       - name: Publish latest image to this repository
         run: |

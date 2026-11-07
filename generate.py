@@ -220,7 +220,8 @@ def card(draw, top, purity, data):
               font=font(40, bold=True), fill=PALE)
 
 
-def render(now, data, demo, shop_name, shop_subtitle, shop_tagline, logo_path):
+def render(now, data, demo, shop_name, shop_subtitle, shop_tagline,
+           shop_address, shop_phone, logo_path):
     image = gradient_background()
     d = ImageDraw.Draw(image)
     # Ornamental border and header.
@@ -234,26 +235,23 @@ def render(now, data, demo, shop_name, shop_subtitle, shop_tagline, logo_path):
     centered(d, (540, 515), "DAILY GOLD RATES", WHITE, font(61, serif=True))
     centered(d, (540, 592), now.strftime("%A, %d %B %Y"), PALE, font(32))
 
-    reference_day = data["as_of"].date() == now.date()
-    label = "LATEST MARKET REFERENCE" if not reference_day else "TODAY'S MARKET REFERENCE"
-    if data.get("date_only"):
-        label = "DEVI JEWELLERS COLOMBO REFERENCE"
-    centered(d, (540, 663), label, GOLD, font(26, bold=True))
+    centered(d, (540, 663), "SRI LANKA GOLD RATE REFERENCE", GOLD,
+             font(26, bold=True))
     card(d, 716, "24K", data["prices"]["24k"])
     card(d, 1111, "22K", data["prices"]["22k"])
 
     timestamp = data["as_of"].strftime("%d %b %Y") if data.get("date_only") else data["as_of"].strftime("%d %b %Y · %I:%M %p")
-    date_label = "Devi published rate date" if data.get("date_only") else "Rate last updated"
+    date_label = "Rate date" if data.get("date_only") else "Rate last updated"
     centered(d, (540, 1543), f"{date_label}: {timestamp}", PALE,
              font(27))
     d.line((132, 1601, 948, 1601), fill=(98, 83, 52), width=2)
-    centered(d, (540, 1661), "DEVI JEWELLERS REFERENCE RATES", GOLD,
-             font(30, bold=True))
-    centered(d, (540, 1715), "Not an Elegance selling-price quote.",
-             WHITE, font(27))
-    centered(d, (540, 1754), "Making charges, taxes and margins may apply.",
+    centered(d, (540, 1658), "VISIT ELEGANCE GEM & JEWELLERS", GOLD,
+             font(29, bold=True))
+    centered(d, (540, 1715), shop_address[:64], WHITE, font(31))
+    centered(d, (540, 1771), f"CALL / WHATSAPP: {shop_phone[:28]}", PALE,
+             font(31, bold=True))
+    centered(d, (540, 1844), "Indicative rates; jewellery prices may vary.",
              MUTED, font(24))
-    centered(d, (540, 1837), f"Source: {SOURCE_NAME}", MUTED, font(24))
 
     if demo:
         overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
@@ -276,11 +274,14 @@ def main():
     parser.add_argument("--shop", default=os.getenv("SHOP_NAME", "ELEGANCE"))
     parser.add_argument("--subtitle", default=os.getenv("SHOP_SUBTITLE", "GEM & JEWELLERS"))
     parser.add_argument("--tagline", default=os.getenv("SHOP_TAGLINE", "Timeless Beauty, enduring Gold"))
+    parser.add_argument("--address", default=os.getenv("SHOP_ADDRESS", "No. 97, Main Street, Tangalle"))
+    parser.add_argument("--phone", default=os.getenv("SHOP_PHONE", "077 077 7998"))
     parser.add_argument("--logo", default=os.getenv("SHOP_LOGO", "assets/logo.png"))
     args = parser.parse_args()
     now, data = get_rates(args.demo)
     logo_file = ROOT / args.logo if not Path(args.logo).is_absolute() else Path(args.logo)
-    image = render(now, data, args.demo, args.shop, args.subtitle, args.tagline, logo_file)
+    image = render(now, data, args.demo, args.shop, args.subtitle,
+                   args.tagline, args.address, args.phone, logo_file)
     OUTPUT.mkdir(parents=True, exist_ok=True)
     image.save(OUTPUT / ("sample.png" if args.demo else "today.png"), optimize=True)
     if not args.demo:
