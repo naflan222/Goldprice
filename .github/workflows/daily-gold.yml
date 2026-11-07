@@ -10,8 +10,8 @@ on:
       - '.github/workflows/daily-gold.yml'
   workflow_dispatch:
   schedule:
-    - cron: '35 8 * * *'
-      timezone: 'Asia/Colombo'
+    # GitHub's cron is UTC: 03:05 UTC = 08:35 in Sri Lanka (UTC+05:30).
+    - cron: '5 3 * * *'
 
 permissions:
   contents: write
