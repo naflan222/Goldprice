@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Create a daily, clearly labelled Sri Lankan gold-rate Status image.
+"""Create a daily Status image using Devi Jewellers' Colombo gold rates.
 
-The input is an indicative market-reference API, NOT a jewellery retail quote.
-Fail closed when the source is malformed or too old. `--demo` never uses live data.
+The public LankaRates comparison page republishes Devi's prices, in LKR per
+8-gram pawn. Do not call its pawn figures 'per gram'. Fail closed if stale.
 """
 
 import argparse
@@ -10,8 +10,10 @@ import json
 import math
 import os
 from datetime import datetime, timedelta
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -19,8 +21,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "docs"
-SOURCE_API = "https://www.goldpricetoday.lk/api/v1/gold-price"
-SOURCE_NAME = "GoldPriceToday.lk"
+SOURCE_API = "https://lankarates.com/gold-rates"
+DEVI_SOURCE = "https://devijewellers.lk/gold-rate/"
+SOURCE_NAME = "Devi Jewellers (via LankaRates.com)"
 COLOMBO = ZoneInfo("Asia/Colombo")
 WIDTH, HEIGHT = 1080, 1920
 GOLD = (222, 185, 111)
@@ -64,6 +67,83 @@ def validate_rate(payload: dict, now: datetime) -> dict:
     return {"as_of": when, "prices": prices}
 
 
+class RatePageParser(HTMLParser):
+    """Collect publicly rendered Astro widget data from LankaRates' gold page."""
+
+    def __init__(self):
+        super().__init__()
+        self.props = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "astro-island":
+            value = dict(attrs).get("props")
+            if value:
+                self.props.append(value)
+
+
+def unwrap_astro(value):
+    """Decode Astro's simple [type, value] wrappers for JSON widget props."""
+    if isinstance(value, list) and len(value) == 2 and value[0] in (0, 1):
+        return unwrap_astro(value[1])
+    if isinstance(value, list):
+        return [unwrap_astro(part) for part in value]
+    if isinstance(value, dict):
+        return {key: unwrap_astro(part) for key, part in value.items()}
+    return value
+
+
+def parse_devi_rates(html: str, now: datetime) -> dict:
+    """Return strictly attributed Devi rates; never use other jewellers' rows."""
+    page = RatePageParser()
+    page.feed(html)
+    matches = {}
+    for raw in page.props:
+        try:
+            data = unwrap_astro(json.loads(raw))
+        except (ValueError, TypeError, KeyError):
+            continue
+        for row in data.get("rates", []):
+            if not isinstance(row, dict):
+                continue
+            institution = row.get("institution", {})
+            commodity = row.get("commodity", {})
+            source = row.get("source", {})
+            if institution.get("code") != "devi-jewellers":
+                continue
+            purity = commodity.get("karat")
+            if purity not in ("22ct", "24ct") or commodity.get("unit") != "pawn_8g":
+                continue
+            source_url = urlparse(source.get("url", ""))
+            if source_url.netloc.lower() != "devijewellers.lk" or not source_url.path.startswith("/gold-rate"):
+                raise ValueError("Devi row does not link to Devi's official gold-rate page")
+            date_str = row.get("rateDate")
+            if date_str != source.get("effectiveDate"):
+                raise ValueError("Devi price date disagrees with source date")
+            published = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=COLOMBO)
+            price = float(row.get("rate", {}).get("priceLkr"))
+            if not math.isfinite(price) or not (50_000 <= price <= 3_000_000):
+                raise ValueError("Suspicious Devi 8-gram pawn price")
+            key = "24k" if purity == "24ct" else "22k"
+            found = (published, price)
+            if key in matches and matches[key] != found:
+                raise ValueError("Conflicting Devi gold-rate entries")
+            matches[key] = found
+    if set(matches) != {"22k", "24k"}:
+        raise ValueError("The public source did not contain both Devi 22K and 24K pawn prices")
+    if matches["22k"][0] != matches["24k"][0]:
+        raise ValueError("Devi 22K and 24K prices have different effective dates")
+
+    published = matches["24k"][0]
+    payload = {
+        "status": "ok", "currency": "LKR", "as_of": published.isoformat(),
+        "prices": {
+            purity: {"per_gram": pawn / 8, "per_8g": pawn}
+            for purity, (_, pawn) in matches.items()
+        },
+    }
+    return validate_rate(payload, now)
+
+
 def get_rates(demo=False):
     now = datetime.now(COLOMBO)
     if demo:
@@ -76,11 +156,14 @@ def get_rates(demo=False):
         }
     else:
         request = Request(SOURCE_API, headers={
-            "User-Agent": "GoldRateStatusImage/1.0 (+daily reference image)",
-            "Accept": "application/json",
+            "User-Agent": "EleganceGoldRates/1.0 (daily published-rate display)",
+            "Accept": "text/html",
         })
         with urlopen(request, timeout=25) as response:
-            payload = json.load(response)
+            html = response.read(2_000_000).decode("utf-8")
+        result = parse_devi_rates(html, now)
+        result["date_only"] = True
+        return now, result
     result = validate_rate(payload, now)
     return now, result
 
@@ -153,17 +236,20 @@ def render(now, data, demo, shop_name, shop_subtitle, shop_tagline, logo_path):
 
     reference_day = data["as_of"].date() == now.date()
     label = "LATEST MARKET REFERENCE" if not reference_day else "TODAY'S MARKET REFERENCE"
+    if data.get("date_only"):
+        label = "DEVI JEWELLERS COLOMBO REFERENCE"
     centered(d, (540, 663), label, GOLD, font(26, bold=True))
     card(d, 716, "24K", data["prices"]["24k"])
     card(d, 1111, "22K", data["prices"]["22k"])
 
-    timestamp = data["as_of"].strftime("%d %b %Y · %I:%M %p")
-    centered(d, (540, 1543), f"Rate last updated: {timestamp} (SL time)", PALE,
+    timestamp = data["as_of"].strftime("%d %b %Y") if data.get("date_only") else data["as_of"].strftime("%d %b %Y · %I:%M %p")
+    date_label = "Devi published rate date" if data.get("date_only") else "Rate last updated"
+    centered(d, (540, 1543), f"{date_label}: {timestamp}", PALE,
              font(27))
     d.line((132, 1601, 948, 1601), fill=(98, 83, 52), width=2)
-    centered(d, (540, 1661), "INDICATIVE MARKET PRICES ONLY", GOLD,
+    centered(d, (540, 1661), "DEVI JEWELLERS REFERENCE RATES", GOLD,
              font(30, bold=True))
-    centered(d, (540, 1715), "Not a jewellery shop's selling-price quote.",
+    centered(d, (540, 1715), "Not an Elegance selling-price quote.",
              WHITE, font(27))
     centered(d, (540, 1754), "Making charges, taxes and margins may apply.",
              MUTED, font(24))
@@ -200,11 +286,12 @@ def main():
     if not args.demo:
         metadata = {
             "generated_at": now.isoformat(),
-            "source": SOURCE_NAME,
-            "source_url": SOURCE_API,
-            "price_as_of": data["as_of"].isoformat(),
+            "source": "Devi Jewellers, Colombo",
+            "source_url": DEVI_SOURCE,
+            "retrieved_via": SOURCE_API,
+            "price_date": data["as_of"].date().isoformat(),
             "currency": "LKR",
-            "type": "indicative_market_reference_not_retail_quote",
+            "type": "devi_published_reference_not_elegance_retail_quote",
             "prices": data["prices"],
         }
         (OUTPUT / "today.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")

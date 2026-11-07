@@ -1,8 +1,8 @@
 # Sri Lanka Daily Gold-Price Image — iPhone + WhatsApp Business
 
-Generates a premium Elegance Gem & Jewellers vertical (1080×1920) 22K / 24K gold-price picture, including
-per-gram and per-8-gram (pawn) values, a visible source timestamp, and a clear
-"indicative market reference" warning. It can run daily on GitHub Actions.
+Generates a premium Elegance Gem & Jewellers vertical (1080×1920) 22K / 24K gold-price picture using
+**Devi Jewellers, Colombo** reference prices, including per-gram and per-8-gram
+(pawn) values, a visible source date, and a clear disclaimer. It runs daily on GitHub Actions.
 
 **What it does not do:** automatically post to WhatsApp Status. WhatsApp does
 not provide a supported Status-publishing API. Your friend will post from their
@@ -10,15 +10,25 @@ iPhone's WhatsApp Business app after the picture is automatically saved to Photo
 
 ## Rate source and safeguards
 
-- JSON API: https://www.goldpricetoday.lk/api/v1/gold-price
-- Commercial-use API terms: https://www.goldpricetoday.lk/terms
-- API is a third-party *indicative* market reference, **not a retail jewellery quote**.
-- Validate currency, values and source timestamps; reject readings older than
-  72 hours. In weekends and holidays, an older valid observation is labelled
-  "latest" and carries the exact underlying timestamp.
-- If the feed is unavailable, invalid or too old, **the job fails rather than
-  generating a misleading new image**. The previously published file remains.
-- It is your responsibility to check that this source is suitable for the shop.
+- Official Devi Jewellers source: https://devijewellers.lk/gold-rate/
+- Automated retrieval from **LankaRates.com** public comparison page:
+  https://lankarates.com/gold-rates. We use only the rows explicitly attributed
+  to Devi Jewellers and pointing at its official page. The direct Devi website
+  returned an automated-traffic challenge during setup, so no attempt is made
+  to bypass that protection. This is **not** a Devi official API.
+- Devi's 24K and 22K displayed prices (e.g. Rs. 366,000 and Rs. 336,700 on
+  7 Nov 2026) are **per 8 grams (one pawn)** despite an inconsistent `/g`
+  label on parts of the Devi site. We correctly divide each by 8 for per-gram
+  prices; this matches LankaRates' units.
+- Validate institution, source URL, currency, purity, value and publication
+  date; reject rates older than 72 hours. For weekends or holidays, older
+  valid reference prices retain their actual source date.
+- If the feed is unavailable, inconsistent or too old, **the job fails rather
+  than generating an apparently fresh but misleading new image**. The
+  previously published image remains unchanged, so review its date before posting.
+- The values represent **Devi-published reference rates**, not Elegance's own
+  retail selling-price quote. Confirm suitability and data-reuse permission
+  with the relevant provider before using at commercial scale.
 
 ## Try the design first
 

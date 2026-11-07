@@ -1,18 +1,19 @@
 {
-  "generated_at": "2026-11-07T15:23:16.454429+05:30",
-  "source": "GoldPriceToday.lk",
-  "source_url": "https://www.goldpricetoday.lk/api/v1/gold-price",
-  "price_as_of": "2026-11-07T03:25:03+05:30",
+  "generated_at": "2026-11-07T21:59:00.746740+05:30",
+  "source": "Devi Jewellers, Colombo",
+  "source_url": "https://devijewellers.lk/gold-rate/",
+  "retrieved_via": "https://lankarates.com/gold-rates",
+  "price_date": "2026-11-07",
   "currency": "LKR",
-  "type": "indicative_market_reference_not_retail_quote",
+  "type": "devi_published_reference_not_elegance_retail_quote",
   "prices": {
     "24k": {
-      "per_gram": 43524.76,
-      "per_8g": 348198.07
+      "per_gram": 45750.0,
+      "per_8g": 366000.0
     },
     "22k": {
-      "per_gram": 39897.7,
-      "per_8g": 319181.56
+      "per_gram": 42087.5,
+      "per_8g": 336700.0
     }
   }
 }
