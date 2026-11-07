@@ -70,7 +70,7 @@ python3 -m unittest discover -s tests -v
 
    `https://raw.githubusercontent.com/naflan222/Goldprice/main/docs/today.png`
 
-6. The scheduled job runs at **8:35 AM Sri Lanka time**. GitHub's schedule may
+6. The scheduled job targets **8:35 AM Sri Lanka time** (`03:05 UTC`). GitHub's schedule may
    occasionally be delayed; if the image hasn't updated, the old timestamp
    remains clearly visible. **Don't post an image if its rate date is too old**.
 
